@@ -8,6 +8,7 @@ from my_wellness_connector.constants import (
     MACHINE_TYPE_ATTRIBUTE,
 )
 from my_wellness_connector.my_whelness import MyWellness
+from my_wellness_connector.logger import app_logger
 import datetime
 
 username: str = os.getenv("MYWELLNESS_USERNAME")
@@ -43,6 +44,10 @@ with open("/Users/rbean/temp/trainings_urls.txt", "w") as file_url:
         file_url.write(
             f"{training_session[HREF_ATTRIBUTE]},{training_session[IDCR_ATTRIBUTE]},{training_session[DATA_POSITION_ATTRIBUTE]}\n"
         )
+        message_info: str = (
+            f"Session: {training_session[CELL_DATE_ATTRIBUTE]} - {training_session[DATA_POSITION_ATTRIBUTE]} - {training_session[MACHINE_TYPE_ATTRIBUTE]} - {training_session[ACTIVITY_ID_ATTRIBUTE]}"
+        )
+        app_logger.info(message_info)
         session_exercices: str = my_wellness.get_session_exercice(
             href=training_session[HREF_ATTRIBUTE],
             id_cr=training_session[IDCR_ATTRIBUTE],
