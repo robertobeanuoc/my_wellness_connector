@@ -20,6 +20,6 @@ def db_name():
 
 def get_db_url():
     ret_connection_string: str = (
-        f"mysql://{user_name()}:{password()}@{host()}/{db_name()}"
+        f"mysql+pymysql://{user_name()}:{password()}@{host()}/{db_name()}"
     )
     return ret_connection_string
