@@ -114,24 +114,31 @@ class MyWellness:
         row_ods = html_doc.xpath('//div[@class="row odd"]')
         for row in row_ods:
             for session in row.xpath('.//div[@class="single-item clearfix even"]/a'):
-                ret_trainings.append(
-                    {
-                        CELL_DATE_ATTRIBUTE: row.xpath('.//div[@class="cell date"]')[
-                            0
-                        ].text_content(),
-                        IDCR_ATTRIBUTE: row.xpath('.//input[@name="hdSessionIdCR"]')[
-                            0
-                        ].attrib["id"],
-                        HREF_ATTRIBUTE: session.attrib["href"],
-                        DATA_POSITION_ATTRIBUTE: int(session.attrib["data-position"]),
-                        MACHINE_TYPE_ATTRIBUTE: row.xpath('.//span[@class="note"]')[
-                            0
-                        ].text_content(),
-                        ACTIVITY_ID_ATTRIBUTE: self._get_physical_activity_id(
-                            url=session.attrib["href"]
-                        ),
-                    }
+                notes: list[str] = list(
+                    map(
+                        lambda note: note.text_content(),
+                        row.xpath('.//span[@class="note"]'),
+                    )
                 )
+                machine_type: str = " ".join(notes)
+
+                session_attrib: dict = {
+                    CELL_DATE_ATTRIBUTE: row.xpath('.//div[@class="cell date"]')[
+                        0
+                    ].text_content(),
+                    IDCR_ATTRIBUTE: row.xpath('.//input[@name="hdSessionIdCR"]')[
+                        0
+                    ].attrib["id"],
+                    HREF_ATTRIBUTE: session.attrib["href"],
+                    DATA_POSITION_ATTRIBUTE: int(session.attrib["data-position"]),
+                    MACHINE_TYPE_ATTRIBUTE: machine_type,
+                    ACTIVITY_ID_ATTRIBUTE: self._get_physical_activity_id(
+                        url=session.attrib["href"]
+                    ),
+                }
+                if session_attrib[MACHINE_TYPE_ATTRIBUTE] == "Run Artis":
+                    i = 10
+                ret_trainings.append(session_attrib)
 
         return ret_trainings
 
