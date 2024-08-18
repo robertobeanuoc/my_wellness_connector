@@ -164,3 +164,4 @@ cython_debug/
 *.vscode/**
 !.vscode/settings.json
 src/data/** 
+src/local_env.sh
