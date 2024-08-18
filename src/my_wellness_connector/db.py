@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+from sqlalchemy.engine.base import Engine
 import os
 
 
@@ -23,3 +24,7 @@ def get_db_url():
         f"mysql+pymysql://{user_name()}:{password()}@{host()}/{db_name()}"
     )
     return ret_connection_string
+
+
+def get_deb_engine(url: str) -> Engine:
+    return create_engine(url)
