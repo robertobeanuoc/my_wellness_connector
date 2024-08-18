@@ -6,6 +6,8 @@ import uuid
 
 ID_STRING_LENGTH: int = 64
 NAME_STRING_LENGTH: int = 100
+AEROBIC_EXERCISE_TYPE: str = "Aerobic"
+RESISTANCE_EXERCISE_TYPE: str = "Resistance"
 
 
 class Base(DeclarativeBase):
