@@ -26,5 +26,5 @@ def get_db_url():
     return ret_connection_string
 
 
-def get_deb_engine(url: str) -> Engine:
+def get_db_engine(url: str) -> Engine:
     return create_engine(url)
