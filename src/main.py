@@ -114,6 +114,12 @@ def sync_sessions(days_back: int):
                             session=session,
                             name=machine_type.name,
                         ).uuid,
+                        power_avg=my_wellness.get_int_attribute_from_session(
+                            session_exercise, "POTENCIA MEDIA"
+                        ),
+                        moves=my_wellness.get_int_attribute_from_session(
+                            session_exercise, "MOVES"
+                        ),
                         exercise_type_uuid=machine_type.exercise_type_uuid,
                     )
                     session.add(session_execise)

@@ -208,5 +208,14 @@ class MyWellness:
     ) -> int:
         ret_attribute: int = 0
         if attribute in session_exercise:
-            ret_attribute = int(re.findall(r"[0-9]", session_exercise[attribute])[0])
+            ret_attribute = int(re.findall(r"[0-9]+", session_exercise[attribute])[0])
+        return ret_attribute
+
+    @staticmethod
+    def get_minutes_from_time_attribute_from_session(
+        session_exercise: dict[str, str], attribute: str
+    ) -> int:
+        ret_attribute: int = 0
+        if attribute in session_exercise:
+            re.findall(r"[0-9][0-9]?:[0-9][0-9]", session_exercise[attribute])
         return ret_attribute

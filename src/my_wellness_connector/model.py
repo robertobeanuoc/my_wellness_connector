@@ -91,6 +91,9 @@ class SessionExercise(Base):
     fc_max: Column = Column(Integer)
     fc_avg: Column = Column(Integer)
     duration_minutes: Column = Column(Integer)
+    power_avg: Column = Column(Integer)
+    moves: Column = Column(Integer)
+    weight: Column = Column(Integer)
 
     @staticmethod
     def get_by_activity_uuid(session, activity_uuid: str):
