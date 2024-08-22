@@ -9,7 +9,7 @@ NAME_STRING_LENGTH: int = 100
 
 # Exercise Types
 EXERCISE_TYPE_AEROBIC: str = "Aerobic"
-EXERCISE_TYPE_RESISTANCE: str = "Resistance"
+EXERCISE_TYPE_STRENGTH: str = "Strength"
 EXERCISE_TYPE_FLEXIBILITY: str = "Flexibility"
 EXERCISE_TYPE_BALANCE: str = "Balance"
 
@@ -19,6 +19,12 @@ MACHINE_TYPE_RUN_ARTIS: str = "Run Artis"
 MACHINE_TYPE_SYNCRO_ARTIS: str = "Synchro Artis"
 MACHINE_TYPE_CHEST_PRESS_BIO: str = "Chest Press Biostrength"
 MACHINE_TYPE_RUN_ARTIS_CHEST: str = "Chest Press Artis"
+
+
+# Machine Classes
+MACHINE_CLASS_RUNNING: str = "Running"
+MACHINE_CLASS_GROUP_CYCLING: str = "Group Cycling"
+MACHINE_CLASS_STRENGTH: str = "Strength"
 
 
 class Base(DeclarativeBase):
@@ -55,12 +61,27 @@ def before_update(mapper, connection, target):
     target.row_updated_at = datetime.datetime.now(datetime.UTC)
 
 
+class MachineClass(Base):
+    __tablename__ = "machine_class"
+    name: Column = Column(String(NAME_STRING_LENGTH), unique=True)
+    machine_types = relationship("MachineType", back_populates="machine_class")
+
+    @staticmethod
+    def get_by_name(session, name: str):
+        return session.query(MachineClass).filter_by(name=name).first()
+
+
 class MachineType(Base):
     __tablename__ = "machine_type"
     exercise_type_uuid: Column = Column(
         String(ID_STRING_LENGTH), ForeignKey("exercise_type.uuid")
     )
     name: Column = Column(String(NAME_STRING_LENGTH), unique=True)
+    machine_class_uuid: Column = Column(
+        String(ID_STRING_LENGTH), ForeignKey("machine_class.uuid")
+    )
+    session_exercises = relationship("SessionExercise", back_populates="machine_type")
+    machine_class = relationship("MachineClass", back_populates="machine_types")
 
     @staticmethod
     def get_by_name(session, name: str):
@@ -80,10 +101,7 @@ def before_update(mapper, connection, target):
 
 class SessionExercise(Base):
     __tablename__ = "session_exercise"
-    exercise_type_uuid: Column = Column(
-        String(ID_STRING_LENGTH), ForeignKey("exercise_type.uuid")
-    )
-    machine_type_uuid: Column = Column(
+    machine_type_uuid = mapped_column(
         String(NAME_STRING_LENGTH), ForeignKey("machine_type.uuid")
     )
     activity_uuid: Column = Column(String(ID_STRING_LENGTH), unique=True)
@@ -94,6 +112,7 @@ class SessionExercise(Base):
     power_avg: Column = Column(Integer)
     moves: Column = Column(Integer)
     weight: Column = Column(Integer)
+    machine_type = relationship("MachineType", back_populates="session_exercises")
 
     @staticmethod
     def get_by_activity_uuid(session, activity_uuid: str):

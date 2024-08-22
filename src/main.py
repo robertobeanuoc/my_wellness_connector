@@ -9,7 +9,12 @@ from my_wellness_connector.constants import (
 )
 from my_wellness_connector.my_whelness import MyWellness
 from my_wellness_connector.logger import app_logger
-from my_wellness_connector.model import ExerciseType, MachineType, SessionExercise
+from my_wellness_connector.model import (
+    ExerciseType,
+    MachineClass,
+    MachineType,
+    SessionExercise,
+)
 import datetime
 import os
 
@@ -18,13 +23,16 @@ from sqlalchemy import select
 from my_wellness_connector.model import (
     EXERCISE_TYPE_AEROBIC,
     MACHINE_TYPE_GROUP_CYCLING,
-    EXERCISE_TYPE_RESISTANCE,
+    EXERCISE_TYPE_STRENGTH,
     EXERCISE_TYPE_BALANCE,
     EXERCISE_TYPE_FLEXIBILITY,
     MACHINE_TYPE_RUN_ARTIS,
     MACHINE_TYPE_SYNCRO_ARTIS,
     MACHINE_TYPE_CHEST_PRESS_BIO,
     MACHINE_TYPE_RUN_ARTIS_CHEST,
+    MACHINE_CLASS_GROUP_CYCLING,
+    MACHINE_CLASS_RUNNING,
+    MACHINE_CLASS_STRENGTH,
     ExerciseType,
     MachineType,
 )
@@ -45,7 +53,9 @@ def insert_exercise_type(session: Session, exercise_type: str):
         session.flush()
 
 
-def insert_machine_type(session: Session, machine_type: str, exercise_type: str):
+def insert_machine_type(
+    session: Session, machine_type: str, exercise_type: str, machine_class: str
+):
     stmt_check = select(MachineType).where(MachineType.name == machine_type)
     result = session.execute(stmt_check)
     exists = result.fetchone() is not None
@@ -54,17 +64,37 @@ def insert_machine_type(session: Session, machine_type: str, exercise_type: str)
         machine_type.exercise_type_uuid = ExerciseType.get_by_name(
             session, exercise_type
         ).uuid
+        machine_type.machine_class = MachineClass.get_by_name(machine_class).uuid
         session.add(machine_type)
         session.commit()
         session.flush()
 
 
 def insert_machine_types(session: Session):
-    insert_machine_type(session, MACHINE_TYPE_GROUP_CYCLING, EXERCISE_TYPE_AEROBIC)
-    insert_machine_type(session, MACHINE_TYPE_RUN_ARTIS, EXERCISE_TYPE_AEROBIC)
-    insert_machine_type(session, MACHINE_TYPE_SYNCRO_ARTIS, EXERCISE_TYPE_AEROBIC)
-    insert_machine_type(session, MACHINE_TYPE_CHEST_PRESS_BIO, EXERCISE_TYPE_RESISTANCE)
-    insert_machine_type(session, MACHINE_TYPE_RUN_ARTIS_CHEST, EXERCISE_TYPE_RESISTANCE)
+    insert_machine_type(
+        session,
+        MACHINE_TYPE_GROUP_CYCLING,
+        EXERCISE_TYPE_AEROBIC,
+        MACHINE_TYPE_GROUP_CYCLING,
+    )
+    insert_machine_type(
+        session, MACHINE_TYPE_RUN_ARTIS, EXERCISE_TYPE_AEROBIC, MACHINE_CLASS_RUNNING
+    )
+    insert_machine_type(
+        session, MACHINE_TYPE_SYNCRO_ARTIS, EXERCISE_TYPE_AEROBIC, MACHINE_CLASS_RUNNING
+    )
+    insert_machine_type(
+        session,
+        MACHINE_TYPE_CHEST_PRESS_BIO,
+        EXERCISE_TYPE_STRENGTH,
+        MACHINE_CLASS_STRENGTH,
+    )
+    insert_machine_type(
+        session,
+        MACHINE_TYPE_RUN_ARTIS_CHEST,
+        EXERCISE_TYPE_STRENGTH,
+        MACHINE_CLASS_STRENGTH,
+    )
 
 
 def sync_master_data():
@@ -75,7 +105,7 @@ def sync_master_data():
 
 def insert_exercise_types(session):
     insert_exercise_type(session, EXERCISE_TYPE_AEROBIC)
-    insert_exercise_type(session, EXERCISE_TYPE_RESISTANCE)
+    insert_exercise_type(session, EXERCISE_TYPE_STRENGTH)
     insert_exercise_type(session, EXERCISE_TYPE_BALANCE)
     insert_exercise_type(session, EXERCISE_TYPE_FLEXIBILITY)
 
@@ -120,7 +150,6 @@ def sync_sessions(days_back: int):
                         moves=my_wellness.get_int_attribute_from_session(
                             session_exercise, "MOVES"
                         ),
-                        exercise_type_uuid=machine_type.exercise_type_uuid,
                     )
                     session.add(session_execise)
                     session.flush()
