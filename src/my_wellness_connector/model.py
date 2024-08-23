@@ -17,6 +17,7 @@ EXERCISE_TYPE_BALANCE: str = "Balance"
 MACHINE_TYPE_GROUP_CYCLING: str = "Group Cycle Connect"
 MACHINE_TYPE_RUN_ARTIS: str = "Run Artis"
 MACHINE_TYPE_SYNCRO_ARTIS: str = "Synchro Artis"
+MACHINE_TYPE_SYNCRO_ARTIS_2019: str = "Synchro Artis 2019"
 MACHINE_TYPE_CHEST_PRESS_BIO: str = "Chest Press Biostrength"
 MACHINE_TYPE_RUN_ARTIS_CHEST: str = "Chest Press Artis"
 

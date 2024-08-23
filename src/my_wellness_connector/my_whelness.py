@@ -160,7 +160,9 @@ class MyWellness:
         response: requests.Request = self.session.get(url, data=header_info)
         return response.text
 
-    def get_session_exercice(self, training_session: dict[str, str]) -> dict[str, str]:
+    def get_session_exercice(
+        self, training_session: dict[str, str], machine_class: str
+    ) -> dict[str, str]:
 
         exercise_content: str = self._get_training_exeercices_content(
             url=training_session[HREF_ATTRIBUTE],
@@ -169,7 +171,7 @@ class MyWellness:
             day_open_session=training_session[CELL_DATE_ATTRIBUTE],
         )
         ret_exercice_atributes: dict = self.get_attributes_session_content(
-            session_exercice_content=exercise_content
+            session_exercice_content=exercise_content, machine_class=machine_class
         )
         ret_exercice_atributes[MACHINE_TYPE_ATTRIBUTE] = (
             training_session[MACHINE_TYPE_ATTRIBUTE],
@@ -181,7 +183,7 @@ class MyWellness:
         return ret_exercice_atributes
 
     def get_attributes_session_content(
-        self, session_exercice_content: str
+        self, session_exercice_content: str, machine_class: str
     ) -> dict[str, str]:
         training_parsed: dict = html.fromstring(session_exercice_content)
         table: dict = training_parsed.xpath('//table[@class="exercise-table"]')

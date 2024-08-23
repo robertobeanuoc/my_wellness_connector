@@ -10,6 +10,7 @@ from my_wellness_connector.constants import (
 from my_wellness_connector.my_whelness import MyWellness
 from my_wellness_connector.logger import app_logger
 from my_wellness_connector.model import (
+    MACHINE_TYPE_SYNCRO_ARTIS_2019,
     ExerciseType,
     MachineClass,
     MachineType,
@@ -81,7 +82,7 @@ def insert_machine_type(
         machine_type.exercise_type_uuid = ExerciseType.get_by_name(
             session, exercise_type
         ).uuid
-        machine_type.machine_class = MachineClass.get_by_name(
+        machine_type.machine_class_uuid = MachineClass.get_by_name(
             session=session, name=machine_class
         ).uuid
         session.add(machine_type)
@@ -91,28 +92,41 @@ def insert_machine_type(
 
 def insert_machine_types(session: Session):
     insert_machine_type(
-        session,
-        MACHINE_TYPE_GROUP_CYCLING,
-        EXERCISE_TYPE_AEROBIC,
-        MACHINE_TYPE_GROUP_CYCLING,
+        session=session,
+        machine_type=MACHINE_TYPE_GROUP_CYCLING,
+        exercise_type=EXERCISE_TYPE_AEROBIC,
+        machine_class=MACHINE_CLASS_GROUP_CYCLING,
     )
     insert_machine_type(
-        session, MACHINE_TYPE_RUN_ARTIS, EXERCISE_TYPE_AEROBIC, MACHINE_CLASS_RUNNING
+        session=session,
+        machine_type=MACHINE_TYPE_RUN_ARTIS,
+        exercise_type=EXERCISE_TYPE_AEROBIC,
+        machine_class=MACHINE_CLASS_RUNNING,
     )
     insert_machine_type(
-        session, MACHINE_TYPE_SYNCRO_ARTIS, EXERCISE_TYPE_AEROBIC, MACHINE_CLASS_RUNNING
+        session=session,
+        machine_type=MACHINE_TYPE_SYNCRO_ARTIS,
+        exercise_type=EXERCISE_TYPE_AEROBIC,
+        machine_class=MACHINE_CLASS_RUNNING,
     )
     insert_machine_type(
-        session,
-        MACHINE_TYPE_CHEST_PRESS_BIO,
-        EXERCISE_TYPE_STRENGTH,
-        MACHINE_CLASS_STRENGTH,
+        session=session,
+        machine_type=MACHINE_TYPE_SYNCRO_ARTIS_2019,
+        exercise_type=EXERCISE_TYPE_AEROBIC,
+        machine_class=MACHINE_CLASS_RUNNING,
+    )
+
+    insert_machine_type(
+        session=session,
+        machine_type=MACHINE_TYPE_CHEST_PRESS_BIO,
+        exercise_type=EXERCISE_TYPE_STRENGTH,
+        machine_class=MACHINE_CLASS_STRENGTH,
     )
     insert_machine_type(
-        session,
-        MACHINE_TYPE_RUN_ARTIS_CHEST,
-        EXERCISE_TYPE_STRENGTH,
-        MACHINE_CLASS_STRENGTH,
+        session=session,
+        machine_type=MACHINE_TYPE_RUN_ARTIS_CHEST,
+        exercise_type=EXERCISE_TYPE_STRENGTH,
+        machine_class=MACHINE_CLASS_STRENGTH,
     )
 
 
@@ -140,17 +154,23 @@ def sync_sessions(days_back: int):
     )
     with Session(engine, autocommit=False, autoflush=False) as session:
         for training_session in trainning_sessions:
+            machine_type: MachineType = MachineType.get_by_name(
+                session=session, name=training_session[MACHINE_TYPE_ATTRIBUTE]
+            )
             session_execise: SessionExercise = SessionExercise.get_by_activity_uuid(
                 session, training_session[ACTIVITY_ID_ATTRIBUTE]
             )
             session_exercise: dict[str, str] = my_wellness.get_session_exercice(
-                training_session=training_session
+                training_session=training_session,
+                machine_class=machine_type.machine_class.name,
+            )
+            app_logger.info(
+                "Processing session: %s %s",
+                training_session[ACTIVITY_ID_ATTRIBUTE],
+                session_execise,
             )
             if not session_execise:
                 try:
-                    machine_type: MachineType = MachineType.get_by_name(
-                        session=session, name=training_session[MACHINE_TYPE_ATTRIBUTE]
-                    )
                     session_execise = SessionExercise(
                         activity_uuid=training_session[ACTIVITY_ID_ATTRIBUTE],
                         session_date=training_session[CELL_DATE_ATTRIBUTE],
@@ -168,7 +188,10 @@ def sync_sessions(days_back: int):
                             session_exercise, "POTENCIA MEDIA"
                         ),
                         moves=my_wellness.get_int_attribute_from_session(
-                            session_exercise, "MOVES"
+                            session_exercise, "MOVEs"
+                        ),
+                        weight=my_wellness.get_int_attribute_from_session(
+                            session_exercise, "Carga levantada total"
                         ),
                     )
                     session.add(session_execise)
@@ -177,12 +200,6 @@ def sync_sessions(days_back: int):
 
                 except Exception as e:
                     app_logger.error(f"Error: {e}")
-
-            app_logger.info(
-                "Processing session: %s %s",
-                training_session[ACTIVITY_ID_ATTRIBUTE],
-                session_execise,
-            )
 
 
 if __name__ == "__main__":
