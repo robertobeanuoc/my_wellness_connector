@@ -42,6 +42,17 @@ engine: Engine = get_db_engine(get_db_url())
 my_wellness: MyWellness = MyWellness()
 
 
+def insert_machine_class(session: Session, machine_class: str):
+    stmt_check = select(MachineClass).where(MachineClass.name == machine_class)
+    result = session.execute(stmt_check)
+    exists = result.fetchone() is not None
+    if not exists:
+        machine_class: MachineClass = MachineClass(name=machine_class)
+        session.add(machine_class)
+        session.commit()
+        session.flush()
+
+
 def insert_exercise_type(session: Session, exercise_type: str):
     stmt_check = select(ExerciseType).where(ExerciseType.name == exercise_type)
     result = session.execute(stmt_check)
@@ -51,6 +62,12 @@ def insert_exercise_type(session: Session, exercise_type: str):
         session.add(exercise_type)
         session.commit()
         session.flush()
+
+
+def insert_machine_classes(session: Session):
+    insert_machine_class(session, MACHINE_CLASS_GROUP_CYCLING)
+    insert_machine_class(session, MACHINE_CLASS_RUNNING)
+    insert_machine_class(session, MACHINE_CLASS_STRENGTH)
 
 
 def insert_machine_type(
@@ -64,7 +81,9 @@ def insert_machine_type(
         machine_type.exercise_type_uuid = ExerciseType.get_by_name(
             session, exercise_type
         ).uuid
-        machine_type.machine_class = MachineClass.get_by_name(machine_class).uuid
+        machine_type.machine_class = MachineClass.get_by_name(
+            session=session, name=machine_class
+        ).uuid
         session.add(machine_type)
         session.commit()
         session.flush()
@@ -99,6 +118,7 @@ def insert_machine_types(session: Session):
 
 def sync_master_data():
     with Session(engine) as session:
+        insert_machine_classes(session)
         insert_exercise_types(session)
         insert_machine_types(session)
 
