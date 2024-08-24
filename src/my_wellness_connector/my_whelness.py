@@ -20,6 +20,7 @@ from my_wellness_connector.constants import (
     REGULAR_EXPRESION_DATE,
     REGULAR_EXPRESSION_DATA_POSITION,
 )
+from my_wellness_connector.logger import app_logger
 
 
 class MyWellness:
@@ -105,6 +106,11 @@ class MyWellness:
         ret_activity_id: str = re.findall(REGULAR_EXPRESSION_ACTIVITY_ID, url)[0]
         return ret_activity_id
 
+    def _machine_type_has_vertical_data(self, machine_type: str) -> bool:
+        ret_has_vertical_data: bool = False
+        if "vertical" in machine_type.lower():
+            return True
+
     def get_trainning_sessions(
         self,
         start_date: datetime.date,
@@ -186,19 +192,29 @@ class MyWellness:
         self, session_exercice_content: str, machine_class: str
     ) -> dict[str, str]:
         training_parsed: dict = html.fromstring(session_exercice_content)
+        session_exercise_content_fixed: str = html.tostring(
+            training_parsed, pretty_print=True
+        ).decode()
+        training_parsed: dict = html.fromstring(session_exercise_content_fixed)
         table: dict = training_parsed.xpath('//table[@class="exercise-table"]')
         ret_training: dict[str, str] = {}
+        training_properties: list[str] = []
         if table:
-            rows = table[0].xpath(".//tr")
-            for row in rows:
-                th_elements = row.xpath(".//th")
-                td_elements = row.xpath(".//td")
-                # ret_training[th.text_content()] = td.text_content()
-                ret_training[th_elements[0].text_content()] = td_elements[
-                    0
-                ].text_content()
-                # th_values.extend([th.text_content() for th in th_elements])
-                # td_values.extend([td.text_content() for td in td_elements])
+            table_headers = table[0].xpath(".//tbody//tr//th")
+            for table_header in table_headers:
+                training_properties.append(table_header.text_content())
+            table_rows = table[0].xpath(".//tbody//tr")
+            for table_row in table_rows:
+                td_elements = table_row.xpath(".//td")
+                for i in range(len(td_elements)):
+                    if training_properties[i] in ret_training.keys():
+                        ret_training[training_properties[i]] += (
+                            "," + td_elements[i].text_content()
+                        )
+                    else:
+                        ret_training[training_properties[i]] = td_elements[
+                            i
+                        ].text_content()
         else:
             raise Exception("Table not found")
 

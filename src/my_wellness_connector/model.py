@@ -26,6 +26,7 @@ MACHINE_TYPE_RUN_ARTIS_CHEST: str = "Chest Press Artis"
 MACHINE_CLASS_RUNNING: str = "Running"
 MACHINE_CLASS_GROUP_CYCLING: str = "Group Cycling"
 MACHINE_CLASS_STRENGTH: str = "Strength"
+MACHINE_CLASS_STRENGTH_VERTICAL_DATA: str = "Strength Vertical Data"
 
 
 class Base(DeclarativeBase):
@@ -70,6 +71,17 @@ class MachineClass(Base):
     @staticmethod
     def get_by_name(session, name: str):
         return session.query(MachineClass).filter_by(name=name).first()
+
+
+@event.listens_for(MachineClass, "before_insert")
+def before_insert(mapper, connection, target):
+    target.row_created_at = datetime.datetime.now(datetime.UTC)
+    target.uuid = str(uuid.uuid4())
+
+
+@event.listens_for(MachineClass, "before_update")
+def before_update(mapper, connection, target):
+    target.row_updated_at = datetime.datetime.now(datetime.UTC)
 
 
 class MachineType(Base):
