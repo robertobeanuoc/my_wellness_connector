@@ -23,10 +23,8 @@ MACHINE_TYPE_RUN_ARTIS_CHEST: str = "Chest Press Artis"
 
 
 # Machine Classes
-MACHINE_CLASS_RUNNING: str = "Running"
-MACHINE_CLASS_GROUP_CYCLING: str = "Group Cycling"
-MACHINE_CLASS_STRENGTH: str = "Strength"
-MACHINE_CLASS_STRENGTH_VERTICAL_DATA: str = "Strength Vertical Data"
+MACHINE_DATA_VERTICAL: str = "Vertical"
+MACHINE_DATA_HORIZONTAL: str = "Horizontal"
 
 
 class Base(DeclarativeBase):
@@ -64,9 +62,9 @@ def before_update(mapper, connection, target):
 
 
 class MachineClass(Base):
-    __tablename__ = "machine_class"
+    __tablename__ = "machine_data"
     name: Column = Column(String(NAME_STRING_LENGTH), unique=True)
-    machine_types = relationship("MachineType", back_populates="machine_class")
+    machine_types = relationship("MachineType", back_populates="machine_data")
 
     @staticmethod
     def get_by_name(session, name: str):
@@ -90,11 +88,11 @@ class MachineType(Base):
         String(ID_STRING_LENGTH), ForeignKey("exercise_type.uuid")
     )
     name: Column = Column(String(NAME_STRING_LENGTH), unique=True)
-    machine_class_uuid: Column = Column(
-        String(ID_STRING_LENGTH), ForeignKey("machine_class.uuid")
+    machine_data_uuid: Column = Column(
+        String(ID_STRING_LENGTH), ForeignKey("machine_data.uuid")
     )
     session_exercises = relationship("SessionExercise", back_populates="machine_type")
-    machine_class = relationship("MachineClass", back_populates="machine_types")
+    machine_data = relationship("MachineClass", back_populates="machine_types")
 
     @staticmethod
     def get_by_name(session, name: str):
@@ -125,6 +123,7 @@ class SessionExercise(Base):
     power_avg: Column = Column(Integer)
     moves: Column = Column(Integer)
     weight: Column = Column(Integer)
+    calories: Column = Column(Integer)
     machine_type = relationship("MachineType", back_populates="session_exercises")
 
     @staticmethod

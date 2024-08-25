@@ -21,6 +21,7 @@ from my_wellness_connector.constants import (
     REGULAR_EXPRESSION_DATA_POSITION,
 )
 from my_wellness_connector.logger import app_logger
+from my_wellness_connector.model import MACHINE_DATA_VERTICAL
 
 
 class MyWellness:
@@ -167,7 +168,7 @@ class MyWellness:
         return response.text
 
     def get_session_exercice(
-        self, training_session: dict[str, str], machine_class: str
+        self, training_session: dict[str, str], machine_data: str
     ) -> dict[str, str]:
 
         exercise_content: str = self._get_training_exeercices_content(
@@ -177,7 +178,7 @@ class MyWellness:
             day_open_session=training_session[CELL_DATE_ATTRIBUTE],
         )
         ret_exercice_atributes: dict = self.get_attributes_session_content(
-            session_exercice_content=exercise_content, machine_class=machine_class
+            session_exercice_content=exercise_content, machine_data=machine_data
         )
         ret_exercice_atributes[MACHINE_TYPE_ATTRIBUTE] = (
             training_session[MACHINE_TYPE_ATTRIBUTE],
@@ -189,7 +190,7 @@ class MyWellness:
         return ret_exercice_atributes
 
     def get_attributes_session_content(
-        self, session_exercice_content: str, machine_class: str
+        self, session_exercice_content: str, machine_data: str
     ) -> dict[str, str]:
         training_parsed: dict = html.fromstring(session_exercice_content)
         session_exercise_content_fixed: str = html.tostring(
@@ -198,23 +199,33 @@ class MyWellness:
         training_parsed: dict = html.fromstring(session_exercise_content_fixed)
         table: dict = training_parsed.xpath('//table[@class="exercise-table"]')
         ret_training: dict[str, str] = {}
-        training_properties: list[str] = []
         if table:
-            table_headers = table[0].xpath(".//tbody//tr//th")
-            for table_header in table_headers:
-                training_properties.append(table_header.text_content())
-            table_rows = table[0].xpath(".//tbody//tr")
-            for table_row in table_rows:
-                td_elements = table_row.xpath(".//td")
-                for i in range(len(td_elements)):
-                    if training_properties[i] in ret_training.keys():
-                        ret_training[training_properties[i]] += (
-                            "," + td_elements[i].text_content()
-                        )
-                    else:
-                        ret_training[training_properties[i]] = td_elements[
-                            i
+            if machine_data == MACHINE_DATA_VERTICAL:
+                table_rows = table[0].xpath(".//tbody//tr")
+                for table_row in table_rows:
+                    td_elements = table_row.xpath(".//td")
+                    th_elements = table_row.xpath(".//th")
+                    if th_elements and td_elements:
+                        ret_training[th_elements[0].text_content()] = td_elements[
+                            0
                         ].text_content()
+            else:
+                training_properties: list[str] = []
+                table_headers = table[0].xpath(".//tbody//th")
+                for table_header in table_headers:
+                    training_properties.append(table_header.text_content())
+                table_rows = table[0].xpath(".//tbody//tr")
+                for table_row in table_rows:
+                    td_elements = table_row.xpath(".//td")
+                    for i in range(len(td_elements)):
+                        if training_properties[i] in ret_training.keys():
+                            ret_training[training_properties[i]] += (
+                                "," + td_elements[i].text_content()
+                            )
+                        else:
+                            ret_training[training_properties[i]] = td_elements[
+                                i
+                            ].text_content()
         else:
             raise Exception("Table not found")
 
@@ -226,7 +237,8 @@ class MyWellness:
     ) -> int:
         ret_attribute: int = 0
         if attribute in session_exercise:
-            ret_attribute = int(re.findall(r"[0-9]+", session_exercise[attribute])[0])
+            for match in re.findall(r"[0-9]+", session_exercise[attribute]):
+                ret_attribute = int(match)
         return ret_attribute
 
     @staticmethod
@@ -235,5 +247,9 @@ class MyWellness:
     ) -> int:
         ret_attribute: int = 0
         if attribute in session_exercise:
-            re.findall(r"[0-9][0-9]?:[0-9][0-9]", session_exercise[attribute])
+            for match in re.findall(
+                r"[0-9][0-9]?:[0-9][0-9]", session_exercise[attribute]
+            ):
+                hours, minutes = match.split(":")
+                ret_attribute = int(hours) * 60 + int(minutes)
         return ret_attribute

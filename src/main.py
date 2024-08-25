@@ -10,7 +10,6 @@ from my_wellness_connector.constants import (
 from my_wellness_connector.my_whelness import MyWellness
 from my_wellness_connector.logger import app_logger
 from my_wellness_connector.model import (
-    MACHINE_TYPE_SYNCRO_ARTIS_2019,
     ExerciseType,
     MachineClass,
     MachineType,
@@ -31,10 +30,9 @@ from my_wellness_connector.model import (
     MACHINE_TYPE_SYNCRO_ARTIS,
     MACHINE_TYPE_CHEST_PRESS_BIO,
     MACHINE_TYPE_RUN_ARTIS_CHEST,
-    MACHINE_CLASS_GROUP_CYCLING,
-    MACHINE_CLASS_RUNNING,
-    MACHINE_CLASS_STRENGTH,
-    MACHINE_CLASS_STRENGTH_VERTICAL_DATA,
+    MACHINE_TYPE_SYNCRO_ARTIS_2019,
+    MACHINE_DATA_HORIZONTAL,
+    MACHINE_DATA_VERTICAL,
     ExerciseType,
     MachineType,
 )
@@ -44,13 +42,13 @@ engine: Engine = get_db_engine(get_db_url())
 my_wellness: MyWellness = MyWellness()
 
 
-def insert_machine_class(session: Session, machine_class: str):
-    stmt_check = select(MachineClass).where(MachineClass.name == machine_class)
+def insert_machine_data(session: Session, machine_data: str):
+    stmt_check = select(MachineClass).where(MachineClass.name == machine_data)
     result = session.execute(stmt_check)
     exists = result.fetchone() is not None
     if not exists:
-        machine_class: MachineClass = MachineClass(name=machine_class)
-        session.add(machine_class)
+        machine_data: MachineClass = MachineClass(name=machine_data)
+        session.add(machine_data)
         session.commit()
         session.flush()
 
@@ -66,15 +64,13 @@ def insert_exercise_type(session: Session, exercise_type: str):
         session.flush()
 
 
-def insert_machine_classes(session: Session):
-    insert_machine_class(session, MACHINE_CLASS_GROUP_CYCLING)
-    insert_machine_class(session, MACHINE_CLASS_RUNNING)
-    insert_machine_class(session, MACHINE_CLASS_STRENGTH)
-    insert_machine_class(session, MACHINE_CLASS_STRENGTH_VERTICAL_DATA)
+def insert_machine_dataes(session: Session):
+    insert_machine_data(session, MACHINE_DATA_HORIZONTAL)
+    insert_machine_data(session, MACHINE_DATA_VERTICAL)
 
 
 def insert_machine_type(
-    session: Session, machine_type: str, exercise_type: str, machine_class: str
+    session: Session, machine_type: str, exercise_type: str, machine_data: str
 ):
     stmt_check = select(MachineType).where(MachineType.name == machine_type)
     result = session.execute(stmt_check)
@@ -84,8 +80,8 @@ def insert_machine_type(
         machine_type.exercise_type_uuid = ExerciseType.get_by_name(
             session, exercise_type
         ).uuid
-        machine_type.machine_class_uuid = MachineClass.get_by_name(
-            session=session, name=machine_class
+        machine_type.machine_data_uuid = MachineClass.get_by_name(
+            session=session, name=machine_data
         ).uuid
         session.add(machine_type)
         session.commit()
@@ -97,44 +93,44 @@ def insert_machine_types(session: Session):
         session=session,
         machine_type=MACHINE_TYPE_GROUP_CYCLING,
         exercise_type=EXERCISE_TYPE_AEROBIC,
-        machine_class=MACHINE_CLASS_GROUP_CYCLING,
+        machine_data=MACHINE_DATA_VERTICAL,
     )
     insert_machine_type(
         session=session,
         machine_type=MACHINE_TYPE_RUN_ARTIS,
         exercise_type=EXERCISE_TYPE_AEROBIC,
-        machine_class=MACHINE_CLASS_RUNNING,
+        machine_data=MACHINE_DATA_VERTICAL,
     )
     insert_machine_type(
         session=session,
         machine_type=MACHINE_TYPE_SYNCRO_ARTIS,
         exercise_type=EXERCISE_TYPE_AEROBIC,
-        machine_class=MACHINE_CLASS_RUNNING,
+        machine_data=MACHINE_DATA_VERTICAL,
     )
     insert_machine_type(
         session=session,
         machine_type=MACHINE_TYPE_SYNCRO_ARTIS_2019,
         exercise_type=EXERCISE_TYPE_AEROBIC,
-        machine_class=MACHINE_CLASS_STRENGTH_VERTICAL_DATA,
+        machine_data=MACHINE_DATA_VERTICAL,
     )
 
     insert_machine_type(
         session=session,
         machine_type=MACHINE_TYPE_CHEST_PRESS_BIO,
         exercise_type=EXERCISE_TYPE_STRENGTH,
-        machine_class=MACHINE_CLASS_STRENGTH,
+        machine_data=MACHINE_DATA_VERTICAL,
     )
     insert_machine_type(
         session=session,
         machine_type=MACHINE_TYPE_RUN_ARTIS_CHEST,
         exercise_type=EXERCISE_TYPE_STRENGTH,
-        machine_class=MACHINE_CLASS_STRENGTH,
+        machine_data=MACHINE_DATA_HORIZONTAL,
     )
 
 
 def sync_master_data():
     with Session(engine) as session:
-        insert_machine_classes(session)
+        insert_machine_dataes(session)
         insert_exercise_types(session)
         insert_machine_types(session)
 
@@ -165,11 +161,11 @@ def sync_sessions(days_back: int):
             session_exercise_attributes: dict[str, str] = (
                 my_wellness.get_session_exercice(
                     training_session=training_session,
-                    machine_class=machine_type.machine_class.name,
+                    machine_data=machine_type.machine_data.name,
                 )
             )
             app_logger.info(
-                "Processing session: %s %s",
+                "Processing session: %s session exercise atributes %s",
                 training_session[ACTIVITY_ID_ATTRIBUTE],
                 session_exercise_attributes,
             )
@@ -189,13 +185,28 @@ def sync_sessions(days_back: int):
                             name=machine_type.name,
                         ).uuid,
                         power_avg=my_wellness.get_int_attribute_from_session(
-                            session_exercise_attributes, "POTENCIA MEDIA"
+                            session_exercise_attributes, "Potencia media"
                         ),
                         moves=my_wellness.get_int_attribute_from_session(
                             session_exercise_attributes, "MOVEs"
+                        )
+                        + my_wellness.get_int_attribute_from_session(
+                            session_exercise_attributes, "Repeticiones [rep] hecho"
                         ),
                         weight=my_wellness.get_int_attribute_from_session(
                             session_exercise_attributes, "Carga levantada total"
+                        )
+                        + my_wellness.get_int_attribute_from_session(
+                            session_exercise_attributes, "Carga [kg] hecho"
+                        ),
+                        duration_minutes=my_wellness.get_minutes_from_time_attribute_from_session(
+                            session_exercise_attributes, "Duración [min]"
+                        )
+                        + my_wellness.get_minutes_from_time_attribute_from_session(
+                            session_exercise_attributes, "Duración"
+                        ),
+                        calories=my_wellness.get_int_attribute_from_session(
+                            session_exercise_attributes, "Calorías"
                         ),
                     )
                     session.add(session_execise)
