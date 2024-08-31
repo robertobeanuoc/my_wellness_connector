@@ -5,7 +5,7 @@ RUN apt-get upgrade -y
 
 RUN mkdir -p /app/my_wellness_connector
 
-COPY src/my_wellness_connector /app/my_wellness_connector
+COPY ./src/my_wellness_connector /app/my_wellness_connector
 # COPY src/requirements.txt /app/requirements.txt
 WORKDIR /app
 RUN pip install --upgrade pip
