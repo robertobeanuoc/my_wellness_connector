@@ -5,7 +5,7 @@ RUN apt-get upgrade -y
 
 RUN mkdir -p /app/
 
-COPY ./food_recognition_model/src /app
+COPY ./src /app
 WORKDIR /app
 RUN pip install --upgrade pip
 RUN pip3 install -r requirements.txt
