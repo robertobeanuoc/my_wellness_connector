@@ -22,3 +22,5 @@ HREF_ATTRIBUTE: str = "href"
 DATA_POSITION_ATTRIBUTE: str = "data_position"
 MACHINE_TYPE_ATTRIBUTE: str = "machine_type"
 ACTIVITY_ID_ATTRIBUTE: str = "activity_id"
+
+VERTICAL_DATA: str = "vertical"

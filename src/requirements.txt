@@ -1,1 +1,4 @@
 lxml>=4.9.2
+SQLAlchemy>=2.0
+alembic>=1.4.0
+PyMySQL>=1.1.1
