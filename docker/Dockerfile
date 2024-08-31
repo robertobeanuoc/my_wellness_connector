@@ -1,5 +1,4 @@
-FROM python:3.9:latest 
-
+FROM python:3.9
 
 RUN apt-get update -y
 RUN apt-get upgrade -y
