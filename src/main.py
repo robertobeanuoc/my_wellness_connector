@@ -145,6 +145,9 @@ def sync_sessions(start_date: datetime.date, end_date: datetime.date):
     trainning_sessions: list[dict] = my_wellness.get_trainning_sessions(
         start_date=start_date, end_date=end_date
     )
+    app_logger.info(
+        "Found  sessions: %s from %s %s", len(trainning_sessions), start_date, end_date
+    )
     with Session(engine, autocommit=False, autoflush=False) as session:
         for training_session in trainning_sessions:
             machine_type: MachineType = MachineType.get_by_name(
