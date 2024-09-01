@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from asyncio import sleep
 from sqlalchemy import Engine
 from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.orm import Session
@@ -223,3 +224,5 @@ if __name__ == "__main__":
     days_back: int = int(os.getenv("DAYS_BACK")) if os.getenv("DAYS_BACK") else 7
 
     sync_sessions(days_back=days_back)
+    while True:
+        sleep(60)

@@ -10,4 +10,4 @@ WORKDIR /app
 RUN pip install --upgrade pip
 RUN pip3 install -r requirements.txt
 
-CMD [ "/usr/bin/bash"]
+CMD [ "python", "/app/main.py" ]
