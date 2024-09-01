@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-from asyncio import sleep
 from sqlalchemy import Engine
-from sqlalchemy.dialects.mysql import insert as mysql_insert
 from sqlalchemy.orm import Session
 from my_wellness_connector.constants import (
     ACTIVITY_ID_ATTRIBUTE,
@@ -226,5 +224,8 @@ if __name__ == "__main__":
         end_date: datetime.date = datetime.datetime.strptime(
             os.getenv("END_DATE"), "%Y-%m-%d"
         ).date()
+    app_logger.info("Start date: %s and End Date %s", start_date, end_date)
+    app_logger.info("Syncing master data")
     sync_master_data()
+    app_logger.info("Syncing sessions")
     sync_sessions(start_date=start_date, end_date=end_date)
