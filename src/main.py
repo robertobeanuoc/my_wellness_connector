@@ -143,11 +143,7 @@ def insert_exercise_types(session):
     insert_exercise_type(session, EXERCISE_TYPE_FLEXIBILITY)
 
 
-def sync_sessions(days_back: int):
-    start_date: datetime.date = datetime.date.today() - datetime.timedelta(
-        days=days_back
-    )
-    end_date: datetime.date = datetime.date.today()
+def sync_sessions(start_date: datetime.date, end_date: datetime.date):
     trainning_sessions: list[dict] = my_wellness.get_trainning_sessions(
         start_date=start_date, end_date=end_date
     )
@@ -219,8 +215,16 @@ def sync_sessions(days_back: int):
 
 
 if __name__ == "__main__":
-
+    start_date: datetime.date = datetime.date.today()
+    end_date: datetime.date = datetime.date.today() + datetime.timedelta(
+        days=int(os.getenv("DAYS_BACK")) if os.getenv("DAYS_BACK") else 7
+    )
+    if os.getenv("START_DATE"):
+        start_date: datetime.date = datetime.datetime.strptime(
+            os.getenv("START_DATE"), "%Y-%m-%d"
+        ).date()
+        end_date: datetime.date = datetime.datetime.strptime(
+            os.getenv("END_DATE"), "%Y-%m-%d"
+        ).date()
     sync_master_data()
-    days_back: int = int(os.getenv("DAYS_BACK")) if os.getenv("DAYS_BACK") else 7
-
-    sync_sessions(days_back=days_back)
+    sync_sessions(start_date=start_date, end_date=end_date)

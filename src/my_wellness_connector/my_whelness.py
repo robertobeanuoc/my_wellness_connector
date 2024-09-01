@@ -4,6 +4,7 @@ import datetime
 import typing
 import os
 from lxml import html
+import urllib
 from my_wellness_connector.constants import (
     ACTIVITY_ID_ATTRIBUTE,
     CELL_DATE_ATTRIBUTE,
@@ -74,16 +75,16 @@ class MyWellness:
         start_date: datetime.date,
         end_date: datetime.date,
     ) -> list[str]:
-        header_info: dict = {
+        params: dict = {
             "token": self.token,
-            "fromDate": start_date.strftime("%d/%m/%Y)"),
-            "toDate": end_date.strftime("%d/%m/%Y)"),
+            "fromDate": start_date.strftime("%d/%m/%Y"),
+            "toDate": end_date.strftime("%d/%m/%Y"),
             "appId": self.app_id,
             "_c": "es_ES",
         }
-        response: requests.Request = self.session.get(
-            DATE_RANGE_URL, headers=header_info
-        )
+        encoded_params = urllib.parse.urlencode(params)
+        full_url: str = f"{DATE_RANGE_URL}?{encoded_params}"
+        response: requests.Request = self.session.get(full_url)
         return response.text
 
     def _getids_cr(self, response_text: str) -> list[str]:
