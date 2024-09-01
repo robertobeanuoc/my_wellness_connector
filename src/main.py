@@ -224,5 +224,3 @@ if __name__ == "__main__":
     days_back: int = int(os.getenv("DAYS_BACK")) if os.getenv("DAYS_BACK") else 7
 
     sync_sessions(days_back=days_back)
-    while True:
-        sleep(60)
