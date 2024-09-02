@@ -1,5 +1,5 @@
 from typing import List
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, event
+from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey, event
 from sqlalchemy.orm import DeclarativeBase, Mapped, relationship, mapped_column
 import datetime
 import uuid
@@ -119,7 +119,7 @@ class SessionExercise(Base):
     session_date: Column = Column(DateTime)
     fc_max: Column = Column(Integer)
     fc_avg: Column = Column(Integer)
-    duration_minutes: Column = Column(Integer)
+    duration_minutes: Column = Column(Float)
     power_avg: Column = Column(Integer)
     moves: Column = Column(Integer)
     weight: Column = Column(Integer)
