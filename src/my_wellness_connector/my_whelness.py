@@ -251,6 +251,6 @@ class MyWellness:
             for match in re.findall(
                 r"[0-9][0-9]?:[0-9][0-9]", session_exercise[attribute]
             ):
-                hours, minutes = match.split(":")
-                ret_attribute = int(hours) * 60 + int(minutes)
+                minutes, seconds = match.split(":")
+                ret_attribute = int(minutes) + int(float(seconds) / 60)
         return ret_attribute
