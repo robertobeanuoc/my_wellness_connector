@@ -245,12 +245,12 @@ class MyWellness:
     @staticmethod
     def get_minutes_from_time_attribute_from_session(
         session_exercise: dict[str, str], attribute: str
-    ) -> int:
-        ret_attribute: int = 0
+    ) -> float:
+        ret_attribute: float = 0
         if attribute in session_exercise:
             for match in re.findall(
                 r"[0-9][0-9]?:[0-9][0-9]", session_exercise[attribute]
             ):
-                hours, minutes = match.split(":")
-                ret_attribute = int(hours) * 60 + int(minutes)
+                minutes, seconds = match.split(":")
+                ret_attribute = float(minutes) + float(seconds) / 60
         return ret_attribute
