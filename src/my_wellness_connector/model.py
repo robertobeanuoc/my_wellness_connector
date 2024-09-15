@@ -1,8 +1,10 @@
 from typing import List
+import pytz
 from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey, event
 from sqlalchemy.orm import DeclarativeBase, Mapped, relationship, mapped_column
 import datetime
 import uuid
+import os
 
 ID_STRING_LENGTH: int = 64
 NAME_STRING_LENGTH: int = 100
@@ -26,13 +28,23 @@ MACHINE_TYPE_RUN_ARTIS_CHEST: str = "Chest Press Artis"
 MACHINE_DATA_VERTICAL: str = "Vertical"
 MACHINE_DATA_HORIZONTAL: str = "Horizontal"
 
+ENV_VAR_DB_TZ_DATES: str = os.getenv("DB_TZ_DATES", "UTC")
+
+
+def convert_utc_to_db_datetime(utc_datetime: datetime.datetime) -> datetime.datetime:
+    tz = pytz.timezone(ENV_VAR_DB_TZ_DATES)
+    ret_db_datetime: datetime.datetime = utc_datetime.astimezone(tz)
+    return ret_db_datetime
+
 
 class Base(DeclarativeBase):
     uuid: Mapped[String] = mapped_column(
         String(ID_STRING_LENGTH), primary_key=True, default=str(uuid.uuid4())
     )
     row_created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC)
+        DateTime,
+        nullable=False,
+        default=convert_utc_to_db_datetime(datetime.datetime.now(datetime.UTC)),
     )
     row_updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime,
@@ -52,13 +64,17 @@ class ExerciseType(Base):
 
 @event.listens_for(ExerciseType, "before_insert")
 def before_insert(mapper, connection, target):
-    target.row_created_at = datetime.datetime.now(datetime.UTC)
+    target.row_created_at = convert_utc_to_db_datetime(
+        datetime.datetime.now(datetime.UTC)
+    )
     target.uuid = str(uuid.uuid4())
 
 
 @event.listens_for(ExerciseType, "before_update")
 def before_update(mapper, connection, target):
-    target.row_updated_at = datetime.datetime.now(datetime.UTC)
+    target.row_updated_at = convert_utc_to_db_datetime(
+        datetime.datetime.now(datetime.UTC)
+    )
 
 
 class MachineClass(Base):
@@ -73,13 +89,17 @@ class MachineClass(Base):
 
 @event.listens_for(MachineClass, "before_insert")
 def before_insert(mapper, connection, target):
-    target.row_created_at = datetime.datetime.now(datetime.UTC)
+    target.row_created_at = convert_utc_to_db_datetime(
+        datetime.datetime.now(datetime.UTC)
+    )
     target.uuid = str(uuid.uuid4())
 
 
 @event.listens_for(MachineClass, "before_update")
 def before_update(mapper, connection, target):
-    target.row_updated_at = datetime.datetime.now(datetime.UTC)
+    target.row_updated_at = convert_utc_to_db_datetime(
+        datetime.datetime.now(datetime.UTC)
+    )
 
 
 class MachineType(Base):
@@ -101,13 +121,17 @@ class MachineType(Base):
 
 @event.listens_for(MachineType, "before_insert")
 def before_insert(mapper, connection, target):
-    target.row_created_at = datetime.datetime.now(datetime.UTC)
+    target.row_created_at = convert_utc_to_db_datetime(
+        datetime.datetime.now(datetime.UTC)
+    )
     target.uuid = str(uuid.uuid4())
 
 
 @event.listens_for(MachineType, "before_update")
 def before_update(mapper, connection, target):
-    target.row_updated_at = datetime.datetime.now(datetime.UTC)
+    target.row_updated_at = convert_utc_to_db_datetime(
+        datetime.datetime.now(datetime.UTC)
+    )
 
 
 class SessionExercise(Base):
@@ -137,10 +161,14 @@ class SessionExercise(Base):
 
 @event.listens_for(SessionExercise, "before_insert")
 def before_insert(mapper, connection, target):
-    target.row_created_at = datetime.datetime.now(datetime.UTC)
+    target.row_created_at = convert_utc_to_db_datetime(
+        datetime.datetime.now(datetime.UTC)
+    )
     target.uuid = str(uuid.uuid4())
 
 
 @event.listens_for(SessionExercise, "before_update")
 def before_update(mapper, connection, target):
-    target.row_updated_at = datetime.datetime.now(datetime.UTC)
+    target.row_updated_at = convert_utc_to_db_datetime(
+        datetime.datetime.now(datetime.UTC)
+    )
