@@ -10,9 +10,5 @@ WORKDIR /app
 RUN pip install --upgrade pip
 RUN pip3 install -r requirements.txt
 
-#Set timezone
-ENV TZ=Europe/Madrid
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
 
 CMD [ "python", "/app/main.py" ]
