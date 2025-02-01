@@ -8,9 +8,7 @@ def user_name():
 
 
 def password():
-    return "pepe"
-    # return os.getenv("DB_PASSWORD")
-
+    return os.getenv("DB_PASSWORD")
 
 
 def host():
