@@ -51,24 +51,20 @@ class MyWellness:
         return ret_app_id
 
     def login(self):
+
         username: str = os.getenv("MYWELLNESS_USERNAME")
         password: str = os.getenv("MYWELLNESS_PASSWORD")
-        self.token, self.app_id = self._get_token_and_app_id(username, password)
 
-    def _get_token_and_app_id(
-        self, username: str, password: str
-    ) -> typing.Tuple[str, str]:
         header_info: dict = {
             "UserBinder.Username": username,
             "UserBinder.Password": password,
             "UserBinder.IsFromLogin": True,
             "UserBinder.KeepMeLogged": False,
+            "UserBinder.MifareId": "",
         }
-        response: requests.Request = self.session.post(TOKEN_URL, data=header_info)
-        ret_token: str = self._get_token(response.text)
-        ret_app_id: str = self._get_app_id(response.text)
-
-        return ret_token, ret_app_id
+        response: requests.Request = self.session.post(
+            TOKEN_URL, data=header_info, allow_redirects=False
+        )
 
     def _get_trainnings(
         self,
@@ -76,10 +72,10 @@ class MyWellness:
         end_date: datetime.date,
     ) -> list[str]:
         params: dict = {
-            "token": self.token,
+            # "token": self.token,
             "fromDate": start_date.strftime("%d/%m/%Y"),
             "toDate": end_date.strftime("%d/%m/%Y"),
-            "appId": self.app_id,
+            # "appId": self.app_id,
             "_c": "es_ES",
         }
         encoded_params = urllib.parse.urlencode(params)
@@ -165,7 +161,7 @@ class MyWellness:
             "dayOpenSession": day_open_session,
             "singleView": True,
         }
-        response: requests.Request = self.session.get(url, data=header_info)
+        response: requests.Request = self.session.get(url)
         return response.text
 
     def get_session_exercice(
