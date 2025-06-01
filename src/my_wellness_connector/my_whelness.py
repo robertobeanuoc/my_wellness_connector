@@ -72,10 +72,8 @@ class MyWellness:
         end_date: datetime.date,
     ) -> list[str]:
         params: dict = {
-            # "token": self.token,
             "fromDate": start_date.strftime("%d/%m/%Y"),
             "toDate": end_date.strftime("%d/%m/%Y"),
-            # "appId": self.app_id,
             "_c": "es_ES",
         }
         encoded_params = urllib.parse.urlencode(params)
@@ -155,12 +153,6 @@ class MyWellness:
     def _get_training_exeercices_content(
         self, url: str, id_cr: str, position: int, day_open_session: str
     ) -> str:
-        header_info: dict = {
-            "idCR": id_cr,
-            "position": position,
-            "dayOpenSession": day_open_session,
-            "singleView": True,
-        }
         response: requests.Request = self.session.get(url)
         return response.text
 
