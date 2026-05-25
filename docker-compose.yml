@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # DB connection used by the app (set DB_HOST in .env to point to your existing DB)
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_TZ_DATES: ${DB_TZ_DATES:-UTC}
+
+      # MyWellness credentials (required for scraping)
+      MYWELLNESS_USERNAME: ${MYWELLNESS_USERNAME}
+      MYWELLNESS_PASSWORD: ${MYWELLNESS_PASSWORD}
+
+      # Optional run controls used by main.py
+      DAYS_BACK: ${DAYS_BACK:-7}
+      START_DATE: ${START_DATE}
+      END_DATE: ${END_DATE}
+
+    volumes:
+      - ./src:/app:ro
+    command: ["python", "/app/main.py"]
+

@@ -1,4 +1,3 @@
-from typing import List
 import pytz
 from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey, event
 from sqlalchemy.orm import DeclarativeBase, Mapped, relationship, mapped_column
